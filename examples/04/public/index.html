@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    .wrap {
+      display: flex;
+    }
+
+    .left {
+      width: 400px;
+    }
+
+    .userName {
+      color: #666;
+      font-size: 18px;
+    }
+
+    .form {
+      margin-bottom: 20px;
+    }
+
+    .right {
+      margin-left: 20px;
+      width: 400px;
+      background: #eee;
+    }
+
+    .delBtn {
+      margin-left: 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .delBtn:hover {
+      border-bottom: 1px solid;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>连接数据库、登录注册、CURD</h1>
+  <div id="app">
+    <div class="wrap">
+      <div class="left">
+        <div class="form">
+          <template v-if="!isLogin">
+            <input type="text" id="name" placeholder="用户名" v-model="name">
+            <input type="text" id="pwd" placeholder="密码" v-model="pwd">
+            <button id="btn" @click="submit('l')">登录</button>
+            <button id="btn" @click="submit('r')">注册</button>
+          </template>
+          <template v-else>
+            <span class="userName">{{name}}</span>
+            <button id="btn" @click="logout">退出</button>
+          </template>
+        </div>
+        <div class="addWrap">
+          <input type="text" placeholder="todo" v-model="todaValue">
+          <button @click="addTodo">添加到列表</button>
+        </div>
+      </div>
+      <div class="right">
+        <template v-if="isLogin">
+          <h2>todoList</h2>
+          <div class="listeWrap">
+            <div class="listItem" v-for="(item, index) in list" :key="index">
+              <span class="lab">{{index+1}}</span>
+              <span class="val" v-if="!item.edit">{{item.todaValue}}</span>
+              <input type="text" v-else v-model="item.todaValue" @keyup.enter="editItem(item)">
+              <span class="delBtn" @click="item.edit = true" v-if="!item.edit">修改</span>
+              <span class="delBtn" @click="delItem(item)">删除</span>
+            </div>
+          </div>
+        </template>
+        <div v-else>请登录</div>
+      </div>
+    </div>
+
+  </div>
+  <script>
+    var app = new Vue({
+      el: "#app",
+      data() {
+        return {
+          message: "Hello,World!",
+          name: 'zys',
+          pwd: '111111',
+          todaValue: '',
+          list: [
+            // {
+            //   id: '',
+            //   todaValue: '',
+            //   edit: false,
+            // }
+          ],
+          isLogin: false, // 是否登录
+        }
+      },
+      methods: {
+        // 登录/注册
+        submit(f) {
+          let { name, pwd } = this
+          console.log('name', name, 'pwd', pwd)
+          let url = f == 'l' ? '/login' : '/register'
+          axios.post(url, { name, pwd }, { timeout: 1000, }).then(res => {
+            console.log(url + 'res', res)
+            if (f == 'l') {
+              console.log('登录成功')
+              this.isLogin = true
+              this.getList()
+            } else {
+              console.log('注册成功， 请登录')
+            }
+          }).catch(err => {
+            console.log('err', err)
+          })
+        },
+
+        // 获取todoList
+        getList() {
+          axios.get('/list').then(res => {
+            console.log('getList /list res', res)
+            let { data } = res
+            data = data.map(d => ({ ...d, edit: false }))
+            this.list.splice(0, Infinity, ...data)
+          })
+        },
+
+        // 添加todo
+        addTodo() {
+          let { todaValue } = this
+          axios.post('/add', { todaValue }).then(res => {
+            console.log('/add res', res)
+            this.todaValue = ''
+            this.getList()
+          })
+        },
+
+        // 编辑项目
+        editItem(item) {
+          let { _id, todaValue } = item
+          axios.post('/editItem', { _id, todaValue }).then(res => {
+            console.log('editItem res', res)
+            console.log('修改成功')
+            item.edit = false
+          })
+        },
+
+        // 删除数据项
+        delItem({ _id }) {
+          axios.post('/deleteItem', { _id }).then(res => {
+            console.log('/deleteItem res', res)
+            this.getList()
+          })
+        },
+
+        // 退出登录
+        logout() {
+          axios.post('/logout').then(res => {
+            console.log('/logout res', res)
+            this.isLogin = false
+          })
+        },
+      },
+      mounted() {
+        console.log('app 组件加载')
+      },
+    });
+  </script>
+</body>
+
+</html>

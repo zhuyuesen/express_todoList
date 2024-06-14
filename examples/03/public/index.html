@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    .wrap {
+      display: flex;
+    }
+
+    .left {
+      width: 400px;
+    }
+
+    .right {
+      margin-left: 20px;
+      width: 400px;
+      background: #eee;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>连接数据库、登录注册</h1>
+  <div id="app">
+    <div class="wrap">
+      <div class="left">
+        <input type="text" id="name" placeholder="用户名" v-model="name">
+        <input type="text" id="pwd" placeholder="密码" v-model="pwd">
+        <button id="btn" @click="submit('l')">登录</button>
+        <button id="btn" @click="submit('r')">注册</button>
+      </div>
+
+    </div>
+
+  </div>
+  <script>
+    var app = new Vue({
+      el: "#app",
+      data() {
+        return {
+          name: '',
+          pwd: '',
+        }
+      },
+      methods: {
+        submit(f) {
+          let { name, pwd } = this
+          if (!name || !pwd) return
+          let url = f == 'l' ? 'login' : 'register'
+          axios.post('/' + url, { name, pwd }, { timeout: 1000, }).then(res => {
+            console.log('res', res)
+            alert(`${url} success`)
+          }).catch(err => {
+            console.log('err', err)
+          })
+        },
+      },
+      mounted() {
+      },
+    });
+  </script>
+</body>
+
+</html>
