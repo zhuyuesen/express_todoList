@@ -12,7 +12,7 @@ const cookieParser = require('cookie-parser');
 
 const mongoose = require('mongoose');
 var dbUrl = "mongodb://localhost:27017/todo_system";
-mongoose.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(dbUrl);
 
 const app = express()
 const port = 3000

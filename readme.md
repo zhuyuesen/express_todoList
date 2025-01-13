@@ -6,7 +6,7 @@
 5. 实现登录注册
 6. curd todo
 
-## 1. 使用express启动一个服务 (代码在 examples 01)
+## 1. 使用express启动一个服务 ( examples 01)
 ```
 # 创建目录
 mkdir 01
@@ -34,7 +34,7 @@ app.listen(port, () => {
 ```
 在项目目录下运行 `node index` 打开浏览器访问 http://localhost:3000/， 看到 Hello World!即说明成功
 
-## 2. 基础路由和静态文件访问 examples 02
+## 2. 基础路由和静态文件访问 页面请求和响应 /submit接口（examples 02）
 在项目中新建public目录/index.html文件、index2.html文件
 ```html
 <!-- index.html -->
@@ -215,7 +215,7 @@ db.movies.updateOne(
 db.movies.deleteOne( { title: "The Favourite" } )
 ```
 
-## 4. express + mongodb.js 连接数据库实现登录注册 examples 03
+## 4. express + mongodb.js 连接数据库实现登录注册 （examples 03）
 ```html
 <!-- index.html -->
  <head>
@@ -321,7 +321,7 @@ app.post('/register', (req, res) => {
 })
 ```
 
-## 5. session登录 + 超时判断， 使用mongoose.js 连接数据库，实现个人todoList操作 example 04
+## 5. session登录 + 超时判断， 使用mongoose.js 连接数据库，实现个人todoList操作 （example 04）
 1. 使用session做用户登录
 用户登录成功后，在session中存储用户信息，并在http响应中设置cookie值，后续请求中使用中间件判断用户是否登录
 2. 登录超时，设置10分钟超时时间，10分钟无请求则判断已超时， 提示重新登录
@@ -421,3 +421,96 @@ User.find({ age: { $gt: 18 } })
   .catch(err => console.error('Error:', err));
 ```
 3. 登录成功后获取个人todo列表，并实现增删改查功能
+```
+<script>
+    var app = new Vue({
+      el: "#app",
+      data() {
+        return {
+          message: "Hello,World!",
+          name: 'zys',
+          pwd: '111111',
+          todaValue: '',
+          list: [
+            // {
+            //   id: '',
+            //   todaValue: '',
+            //   edit: false,
+            // }
+          ],
+          isLogin: false, // 是否登录
+        }
+      },
+      methods: {
+        // 登录/注册
+        submit(f) {
+          let { name, pwd } = this
+          console.log('name', name, 'pwd', pwd)
+          let url = f == 'l' ? '/login' : '/register'
+          axios.post(url, { name, pwd }, { timeout: 1000, }).then(res => {
+            console.log(url + 'res', res)
+            if (f == 'l') {
+              console.log('登录成功')
+              this.isLogin = true
+              this.getList()
+            } else {
+              console.log('注册成功， 请登录')
+            }
+          }).catch(err => {
+            console.log('err', err)
+            alert(err.message || '请求失败')
+          })
+        },
+
+        // 获取todoList
+        getList() {
+          axios.get('/list').then(res => {
+            console.log('getList /list res', res)
+            let { data } = res
+            data = data.map(d => ({ ...d, edit: false }))
+            this.list.splice(0, Infinity, ...data)
+          })
+        },
+
+        // 添加todo
+        addTodo() {
+          let { todaValue } = this
+          axios.post('/add', { todaValue }).then(res => {
+            console.log('/add res', res)
+            this.todaValue = ''
+            this.getList()
+          })
+        },
+
+        // 编辑项目
+        editItem(item) {
+          let { _id, todaValue } = item
+          axios.post('/editItem', { _id, todaValue }).then(res => {
+            console.log('editItem res', res)
+            console.log('修改成功')
+            item.edit = false
+          })
+        },
+
+        // 删除数据项
+        delItem({ _id }) {
+          axios.post('/deleteItem', { _id }).then(res => {
+            console.log('/deleteItem res', res)
+            this.getList()
+          })
+        },
+
+        // 退出登录
+        logout() {
+          axios.post('/logout').then(res => {
+            console.log('/logout res', res)
+            this.isLogin = false
+          })
+        },
+      },
+      mounted() {
+        console.log('app 组件加载')
+      },
+    });
+  </script>
+```
